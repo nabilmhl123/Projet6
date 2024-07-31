@@ -6,15 +6,17 @@ const MIME_TYPES = {
   'image/png': 'png'
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, 'images');
-  },
-  filename: (req, file, callback) => {
-    const name = file.originalname.split(' ').join('_');
+const storage = multer.memoryStorage(); // Utiliser memoryStorage pour travailler avec des buffers
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, callback) => {
     const extension = MIME_TYPES[file.mimetype];
-    callback(null, name + Date.now() + '.' + extension);
+    if (!extension) {
+      return callback(new Error('Invalid file type'), false);
+    }
+    callback(null, true);
   }
 });
 
-module.exports = multer({storage: storage}).single('image');
+module.exports = upload.single('image');

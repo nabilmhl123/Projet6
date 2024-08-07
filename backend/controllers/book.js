@@ -119,7 +119,8 @@ exports.bestRating = async (req, res) => {
 
 exports.rateBook = async (req, res) => {
   const { id } = req.params;
-  const { userId, rating } = req.body;
+  const { rating } = req.body;
+  const userId = req.auth.userId;
 
   try {
     const book = await Book.findById(id);
@@ -133,7 +134,8 @@ exports.rateBook = async (req, res) => {
     }
 
     book.ratings.push({ userId, grade: rating });
-    book.averageRating = ((book.averageRating * book.ratings.length) + rating) / (book.ratings.length + 1);
+    const totalRatings = book.ratings.length;
+    book.averageRating = (book.ratings.reduce((sum, rating) => sum + rating.grade, 0) / totalRatings).toFixed(1);
 
     await book.save();
     res.status(200).json(book);
